@@ -179,7 +179,10 @@ void main(void)
 {
     struct boot_rsp rsp;
     int rc;
-
+#ifdef CONFIG_BOOT_SERIAL_UART_DETECT
+     rc = boot_console_init();
+    __ASSERT(rc == 0, "Error initializing boot console.\n");
+#endif
     BOOT_LOG_INF("Starting bootloader");
 
     os_heap_init();
@@ -200,6 +203,7 @@ void main(void)
 
 #ifdef CONFIG_MCUBOOT_SERIAL
 
+#ifdef CONFIG_BOOT_SERIAL_GPIO_DETECT
     struct device *detect_port;
     u32_t detect_value;
 
@@ -221,6 +225,36 @@ void main(void)
         boot_serial_start(&boot_funcs);
         __ASSERT(0, "Bootloader serial process was terminated unexpectedly.\n");
     }
+#endif
+
+#ifdef CONFIG_BOOT_SERIAL_UART_DETECT
+   
+    char str[2];
+    volatile int newline = 0;
+    volatile int timeout = 10000;
+    int step = 1;
+   
+    BOOT_LOG_INF("Wait:");
+    while(1){
+        console_read(str, 2, &newline);
+        if(newline == 1){
+            break;
+        }
+        
+        timeout -= 1;
+        if(timeout < 1){
+            BOOT_LOG_INF("Booting...");
+            break;
+        }
+    }
+
+    if(newline == 1){
+        BOOT_LOG_INF("Recovery...");
+        
+        boot_serial_start(&boot_funcs);
+    }
+
+#endif
 #endif
 
 #ifdef CONFIG_BOOT_WAIT_FOR_USB_DFU

@@ -28,11 +28,28 @@ extern "C" {
 
 #ifdef MCUBOOT_HAVE_LOGGING
 
+
+
+#define BOOT_LOG_DBG(...) MCUBOOT_LOG_DBG(__VA_ARGS__)
+
+#ifdef CONFIG_BOOT_SERIAL_UART_DETECT
+#define BOOT_LOG_INF(format, args...)  {\
+        char bootstring[256];\
+        snprintk(bootstring, 256, format, ##args);\
+        console_write(bootstring,strlen(bootstring));\
+        snprintk(bootstring, 256, "\r\n");\
+        console_write(bootstring, 2);\
+    }
+#define BOOT_LOG_ERR BOOT_LOG_INF
+#define BOOT_LOG_WRN BOOT_LOG_INF
+#define BOOT_LOG_SIM BOOT_LOG_INF
+
+#else
 #define BOOT_LOG_ERR(...) MCUBOOT_LOG_ERR(__VA_ARGS__)
 #define BOOT_LOG_WRN(...) MCUBOOT_LOG_WRN(__VA_ARGS__)
 #define BOOT_LOG_INF(...) MCUBOOT_LOG_INF(__VA_ARGS__)
-#define BOOT_LOG_DBG(...) MCUBOOT_LOG_DBG(__VA_ARGS__)
 #define BOOT_LOG_SIM(...) MCUBOOT_LOG_SIM(__VA_ARGS__)
+#endif
 
 #else
 

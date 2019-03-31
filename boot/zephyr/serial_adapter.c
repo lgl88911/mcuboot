@@ -147,8 +147,12 @@ boot_uart_fifo_callback(struct device *dev)
 		if (cur < CONFIG_BOOT_MAX_LINE_INPUT_LEN) {
 			cmd->line[cur++] = byte;
 		}
-
-		if (byte ==  '\n') {
+		#ifdef CONFIG_BOOT_SERIAL_UART_DETECT
+		if(byte == '\r'){
+			byte = '\n';
+		}
+		#endif
+		if (byte ==  '\n'){
 			cmd->len = cur;
 			sys_slist_append(&lines_queue, &cmd->node);
 			cur = 0;
